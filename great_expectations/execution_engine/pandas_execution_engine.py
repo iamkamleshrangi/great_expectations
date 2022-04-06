@@ -1,4 +1,5 @@
 import datetime
+import enum
 import hashlib
 import logging
 import pickle
@@ -9,6 +10,7 @@ from io import BytesIO
 from typing import Any, Callable, Iterable, List, Optional, Tuple, Union
 
 import pandas as pd
+from dateutil.parser import parse
 
 import great_expectations.exceptions as ge_exceptions
 from great_expectations.core.batch import BatchMarkers
@@ -609,6 +611,55 @@ Please check your config."""
         )
         matching_string = batch_identifiers[column_name]
         return df[stringified_datetime_series == matching_string]
+
+    class DateComponents(enum.Enum):
+        YEAR: str = "year"
+        MONTH: str = "month"
+        DAY: str = "day"
+        # TODO: Add more if this is the chosen approach
+
+    @staticmethod
+    def _split_on_datetime(
+        df,
+        column_name: str,
+        batch_identifiers: dict,
+        date_components_to_include: Optional[List[DateComponents]],
+        year: str,
+        month: str,
+        day: str,
+    ) -> pd.DataFrame:
+        """Split based on batch_identifiers
+
+        Args:
+            df:
+            column_name:
+            batch_identifiers:
+
+        Returns:
+
+        """
+        # TODO: AJB 20220406 - how to handle specifying the parts of the date that should be
+        #  used in the comparison? For example _split_on_converted_datetime() uses the date_format_string
+        #  to essentially truncate the date to that format before comparing to the batch_identifier which
+        #  is in the same format.
+        #  If we dateutil.parser.parse() the date batch_identifier here,
+        #  then we add 0's to omitted items (e.g. min, sec)
+        #  which then does not match data which contains min, sec.
+        #  Another alternative is to provide a list of DateComponents that should be included
+        #  in the comparison and use the DataFrame.dt functionality of pandas to filter
+        #  (see commented out code below with example for y m d).
+        #  There is probably a better way to capture user intent.
+        batch_identifier_datetime: datetime.datetime = parse(
+            batch_identifiers[column_name]
+        )
+
+        return df.loc[df[column_name] == batch_identifier_datetime]
+
+        # return df.loc[
+        #     (df[column_name].dt.year == int(year)) &
+        #     (df[column_name].dt.month == int(month)) &
+        #     (df[column_name].dt.day == int(day))
+        # ]
 
     @staticmethod
     def _split_on_divided_integer(

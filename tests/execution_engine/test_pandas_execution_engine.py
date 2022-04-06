@@ -775,6 +775,20 @@ def test_get_batch_with_split_on_column_value(test_df):
     assert split_df.dataframe.shape == (3, 10)
 
 
+# test_df:
+# id                         int64
+# batch_id                   int64
+# date                      object
+# y                          int64
+# m                          int64
+# d                          int64
+# timestamp         datetime64[ns]
+# session_ids                int64
+# event_type                object
+# favorite_color            object
+# dtype: object
+
+
 def test_get_batch_with_split_on_converted_datetime(test_df):
     split_df = PandasExecutionEngine().get_batch_data(
         RuntimeDataBatchSpec(
@@ -783,6 +797,68 @@ def test_get_batch_with_split_on_converted_datetime(test_df):
             splitter_kwargs={
                 "column_name": "timestamp",
                 "batch_identifiers": {"timestamp": "2020-01-30"},
+            },
+        )
+    )
+    assert split_df.dataframe.shape == (3, 10)
+
+
+def test_get_batch_with_split_on_converted_datetime(test_df):
+    split_df = PandasExecutionEngine().get_batch_data(
+        RuntimeDataBatchSpec(
+            batch_data=test_df,
+            splitter_method="_split_on_converted_datetime",
+            splitter_kwargs={
+                "column_name": "date",
+                "batch_identifiers": {"date": "2020-01-30"},
+            },
+        )
+    )
+    assert split_df.dataframe.shape == (3, 10)
+
+
+# @pytest.parametrize
+def test_get_batch_with_split_on_converted_datetime_date_format_string(test_df):
+    split_df = PandasExecutionEngine().get_batch_data(
+        RuntimeDataBatchSpec(
+            batch_data=test_df,
+            splitter_method="_split_on_converted_datetime",
+            splitter_kwargs={
+                "column_name": "date",
+                "date_format_string": "%Y-%m",
+                "batch_identifiers": {"date": "2020-01"},
+            },
+        )
+    )
+    assert split_df.dataframe.shape == (120, 10)
+
+
+def test_get_batch_with_split_on_datetime_year(test_df):
+    split_df = PandasExecutionEngine().get_batch_data(
+        RuntimeDataBatchSpec(
+            batch_data=test_df,
+            splitter_method="_split_on_datetime",
+            splitter_kwargs={
+                "column_name": "timestamp",
+                "batch_identifiers": {"timestamp": "2020-01-30"},
+                "year": "2020",
+            },
+        )
+    )
+    assert split_df.dataframe.shape == (120, 10)
+
+
+def test_get_batch_with_split_on_datetime(test_df):
+    split_df = PandasExecutionEngine().get_batch_data(
+        RuntimeDataBatchSpec(
+            batch_data=test_df,
+            splitter_method="_split_on_datetime",
+            splitter_kwargs={
+                "column_name": "timestamp",
+                "batch_identifiers": {"timestamp": "2020-01-30"},
+                "year": "2020",
+                "month": "1",
+                "day": "30",
             },
         )
     )

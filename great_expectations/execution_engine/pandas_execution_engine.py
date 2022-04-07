@@ -612,11 +612,22 @@ Please check your config."""
         matching_string = batch_identifiers[column_name]
         return df[stringified_datetime_series == matching_string]
 
-    class DateComponents(enum.Enum):
-        YEAR: str = "year"
-        MONTH: str = "month"
-        DAY: str = "day"
-        # TODO: Add more if this is the chosen approach
+    # TODO: 20220407 AJB Option 1 Use a list of strftime tokens instead of DateComponents
+    #  or parse from a date_format_string
+    # date_format_string: str = "%Y-%m-%d",
+
+    # TODO: 20220407 AJB Option 2 Separate splitters
+    @staticmethod
+    def _split_on_year(self):
+        raise NotImplementedError
+
+    @staticmethod
+    def _split_on_week(self):
+        raise NotImplementedError
+
+    @staticmethod
+    def _split_on_time(self):
+        raise NotImplementedError
 
     @staticmethod
     def _split_on_datetime(
